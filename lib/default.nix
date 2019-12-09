@@ -75,7 +75,7 @@ let {
     ${create-f { device = q.device + toString q.index; } x.content}
   '';
 
-  create.table = q: x: ''
+  creation.table = q: x: ''
     parted -s ${q.device} mklabel ${x.format}
     ${concatStrings (imap (index: create-f (q // { inherit index; })) x.partitions)}
   '';
