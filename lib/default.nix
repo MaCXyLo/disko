@@ -1,12 +1,11 @@
-import <nixpkgs/lib> ({ body, config, pkgs, ... }:
+with import <nixpkgs/lib>;
 with builtins;
-
+{
 let {
 
   body.config = config-f {};
   body.creation = creation-f {};
   body.mount = mount-f {};
-
 
   config-f = q: x: config.${x.type} q x;
 
@@ -126,3 +125,4 @@ let {
     foldl' recursiveUpdate {} (imap (index: mount-f (q // { inherit index; })) x.partitions);
 
 })
+}
