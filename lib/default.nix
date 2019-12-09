@@ -1,10 +1,12 @@
-import <nixpkgs> { builtins, stdenv, lib, config, pkgs, ... }:
+with import <nixpkgs/lib>;
+with builtins;
 
 let {
 
   body.config = config-f {};
-  body.creation = creation-f {};
+  body.create = create-f {};
   body.mount = mount-f {};
+
 
   config-f = q: x: config.${x.type} q x;
 
@@ -36,44 +38,44 @@ let {
     foldl' recursiveUpdate {} (imap (index: config-f (q // { inherit index; })) x.partitions);
 
 
-  creation-f = q: x: creation.${x.type} q x;
+  create-f = q: x: create.${x.type} q x;
 
-  creation.filesystem = q: x: ''
+  create.filesystem = q: x: ''
     mkfs.${x.format} ${q.device}
   '';
 
-  creation.devices = q: x: ''
-    ${concatStrings (mapAttrsToList (name: creation-f { device = "/dev/${name}"; }) x.content)}
+  create.devices = q: x: ''
+    ${concatStrings (mapAttrsToList (name: create-f { device = "/dev/${name}"; }) x.content)}
   '';
 
-  creation.luks = q: x: ''
+  create.luks = q: x: ''
     cryptsetup -q luksFormat ${q.device} ${x.keyfile} ${toString (x.extraArgs or [])}
     cryptsetup luksOpen ${q.device} ${x.name} --key-file ${x.keyfile}
-    ${creation-f { device = "/dev/mapper/${x.name}"; } x.content}
+    ${create-f { device = "/dev/mapper/${x.name}"; } x.content}
   '';
 
-  creation.lv = q: x: ''
+  create.lv = q: x: ''
     lvcreate -L ${x.size} -n ${q.name} ${q.vgname}
-    ${creation-f { device = "/dev/mapper/${q.vgname}-${q.name}"; } x.content}
+    ${create-f { device = "/dev/mapper/${q.vgname}-${q.name}"; } x.content}
   '';
 
-  creation.lvm = q: x: ''
+  create.lvm = q: x: ''
     pvcreate ${q.device}
     vgcreate ${x.name} ${q.device}
-    ${concatStrings (mapAttrsToList (name: creation-f { inherit name; vgname = x.name; }) x.lvs)}
+    ${concatStrings (mapAttrsToList (name: create-f { inherit name; vgname = x.name; }) x.lvs)}
   '';
 
-  creation.partition = q: x: ''
+  create.partition = q: x: ''
     parted -s ${q.device} mkpart ${x.part-type} ${x.fs-type or ""} ${x.start} ${x.end}
     ${optionalString (x.bootable or false) ''
       parted -s ${q.device} set ${toString q.index} boot on
     ''}
-    ${creation-f { device = q.device + toString q.index; } x.content}
+    ${create-f { device = q.device + toString q.index; } x.content}
   '';
 
-  creation.table = q: x: ''
+  create.table = q: x: ''
     parted -s ${q.device} mklabel ${x.format}
-    ${concatStrings (imap (index: creation-f (q // { inherit index; })) x.partitions)}
+    ${concatStrings (imap (index: create-f (q // { inherit index; })) x.partitions)}
   '';
 
 
