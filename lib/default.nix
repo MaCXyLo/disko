@@ -1,5 +1,4 @@
-with import <nixpkgs/lib>;
-with builtins;
+{ import <nixpkgs> {pkgs, lib, ...}:
 
 let {
 
