@@ -1,4 +1,4 @@
-with import <nixpkgs/lib> ({ body, config, pkgs, ... }:
+import <nixpkgs/lib> ({ body, config, pkgs, ... }:
 with builtins;
 
 let {
@@ -125,4 +125,4 @@ let {
   mount.table = q: x:
     foldl' recursiveUpdate {} (imap (index: mount-f (q // { inherit index; })) x.partitions);
 
-};)
+})
