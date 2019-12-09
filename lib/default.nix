@@ -47,24 +47,24 @@ let {
   '';
 
   creation.devices = q: x: ''
-    ${concatStrings (mapAttrsToList (name: create-f { device = "/dev/${name}"; }) x.content)}
+    ${concatStrings (mapAttrsToList (name: creation-f { device = "/dev/${name}"; }) x.content)}
   '';
 
   creation.luks = q: x: ''
     cryptsetup -q luksFormat ${q.device} ${x.keyfile} ${toString (x.extraArgs or [])}
     cryptsetup luksOpen ${q.device} ${x.name} --key-file ${x.keyfile}
-    ${create-f { device = "/dev/mapper/${x.name}"; } x.content}
+    ${creation-f { device = "/dev/mapper/${x.name}"; } x.content}
   '';
 
   creation.lv = q: x: ''
     lvcreate -L ${x.size} -n ${q.name} ${q.vgname}
-    ${create-f { device = "/dev/mapper/${q.vgname}-${q.name}"; } x.content}
+    ${creation-f { device = "/dev/mapper/${q.vgname}-${q.name}"; } x.content}
   '';
 
   creation.lvm = q: x: ''
     pvcreate ${q.device}
     vgcreate ${x.name} ${q.device}
-    ${concatStrings (mapAttrsToList (name: create-f { inherit name; vgname = x.name; }) x.lvs)}
+    ${concatStrings (mapAttrsToList (name: creation-f { inherit name; vgname = x.name; }) x.lvs)}
   '';
 
   creation.partition = q: x: ''
@@ -72,12 +72,12 @@ let {
     ${optionalString (x.bootable or false) ''
       parted -s ${q.device} set ${toString q.index} boot on
     ''}
-    ${create-f { device = q.device + toString q.index; } x.content}
+    ${creation-f { device = q.device + toString q.index; } x.content}
   '';
 
   creation.table = q: x: ''
     parted -s ${q.device} mklabel ${x.format}
-    ${concatStrings (imap (index: create-f (q // { inherit index; })) x.partitions)}
+    ${concatStrings (imap (index: creation-f (q // { inherit index; })) x.partitions)}
   '';
 
 
