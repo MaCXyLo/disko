@@ -1,7 +1,4 @@
-{ stdenv, lib, config, pkgs, ... }:
-
-with import <nixpkgs/lib>;
-with builtins;
+import <nixpkgs> { builtins, stdenv, lib, config, pkgs, ... }:
 
 let {
 
